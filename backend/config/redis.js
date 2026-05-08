@@ -8,7 +8,6 @@ redisClient.on("error", (err) => {
   console.log("Redis Error:", err);
 });
 
-
 redisClient
   .connect()
   .then(() => console.log("Connected to Redis Successfully"))

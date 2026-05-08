@@ -98,6 +98,13 @@ const updateTodoItem = async (itemId, updates) => {
   return result;
 };
 
+const deleteTodoItem = async (itemId) => {
+  const [result] = await db.query("DELETE FROM todoitems WHERE id = ?", [
+    itemId,
+  ]);
+
+  return result;
+};
 
 module.exports = {
   verifyListOwnership,
@@ -105,4 +112,5 @@ module.exports = {
   updateTodoItem,
   verifyItemOwnership,
   GetTodoItems,
+  deleteTodoItem,
 };
