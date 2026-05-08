@@ -1,10 +1,10 @@
 const { createList } = require("../../services/todoService");
 
 const createTodo = async (req, res) => {
+
   try {
     const { name, is_public } = req.body;
     const userId = req.user.id;
-
     if (!name) {
       return res.status(400).json({
         error: "List name is required",
@@ -24,5 +24,6 @@ const createTodo = async (req, res) => {
     });
   }
 };
+
 
 module.exports = { createTodo };

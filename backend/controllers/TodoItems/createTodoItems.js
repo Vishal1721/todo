@@ -7,21 +7,13 @@ const {
 
 const createItem = async (req, res) => {
   const schema = Joi.object({
-    title: Joi.string().trim().min(1).max(255).required().messages({
-      "string.empty": "Title is required",
-      "string.max": "Title cannot exceed 255 characters",
-      "any.required": "Title is required",
-    }),
-
-    position: Joi.number().integer().min(0).optional().messages({
-      "number.base": "Position must be a number",
-      "number.integer": "Position must be an integer",
-      "number.min": "Position cannot be negative",
-    }),
-
-    reminder_at: Joi.date().optional().messages({
-      "date.base": "Reminder date is invalid",
-    }),
+    title: Joi.string().trim().min(1).max(255).required(),
+    position: Joi.number().integer().min(0).optional(),
+    reminder_at: Joi.date().optional(),
+    tags: Joi.array()
+      .items(Joi.number().integer().positive())
+      .optional()
+      .default([]),
   });
 
   try {
@@ -50,12 +42,13 @@ const createItem = async (req, res) => {
         error: "You do not have access to this todo list",
       });
     }
-
+    const tagsValue = JSON.stringify(value.tags || []);
     const item = await createTodoItem(
       listId,
       value.title,
       value.position ?? 0,
       value.reminder_at ?? null,
+      tagsValue,
     );
 
     res.status(201).json({

@@ -9,28 +9,28 @@ const verifyListOwnership = async (listId, userId) => {
   return rows.length > 0;
 };
 
-const createTodoItem = async (
-  listId,
-  title,
-  position = 0,
-  reminderAt = null,
-) => {
-  const [result] = await db.query(
-    `
-    INSERT INTO todoitems
-    (list_id, title, position, reminder_at)
-    VALUES (?, ?, ?, ?)
-    `,
-    [listId, title, position, reminderAt],
+const GetTodoItems = async (listId) => {
+  const [rows] = await db.query(
+    "SELECT id, list_id, , title,  is_completed,position,remainder_at,remainder_sent FROM todoitems WHERE list_id = ?",
+    [userId],
+  );
+  return rows;
+};
+
+const createTodoItem = async (listId, title, position, reminderAt, tags) => {
+  const [result] = await db.execute(
+    `INSERT INTO todoitems (list_id, title, position, reminder_at, tags) 
+     VALUES (?, ?, ?, ?, ?)`,
+    [listId, title, position, reminderAt, tags],
   );
 
   return {
     id: result.insertId,
     list_id: listId,
     title,
-    is_completed: 0,
     position,
     reminder_at: reminderAt,
+    tags: JSON.parse(tags), 
   };
 };
 
@@ -96,4 +96,5 @@ module.exports = {
   createTodoItem,
   updateTodoItem,
   verifyItemOwnership,
+  GetTodoItems,
 };
