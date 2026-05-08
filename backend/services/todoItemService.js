@@ -1,5 +1,5 @@
 const db = require("../config/db");
-
+const redisClient = require("../config/redis")
 const verifyListOwnership = async (listId, userId) => {
   const [rows] = await db.query(
     "SELECT id FROM todolists WHERE id = ? AND user_id = ?",
@@ -10,12 +10,17 @@ const verifyListOwnership = async (listId, userId) => {
 };
 
 const GetTodoItems = async (listId) => {
+  const cacheKey = `todo:items:${listId}`;
+
   const [rows] = await db.query(
-    "SELECT id, list_id, , title,  is_completed,position,remainder_at,remainder_sent FROM todoitems WHERE list_id = ?",
-    [userId],
+    "SELECT id, list_id, title, is_completed, position, reminder_at, reminder_sent FROM todoitems WHERE list_id = ?",
+    [listId],
   );
+
+  await redisClient.setEx(cacheKey, 30, JSON.stringify(rows));
   return rows;
 };
+
 
 const createTodoItem = async (listId, title, position, reminderAt, tags) => {
   const [result] = await db.execute(
@@ -23,6 +28,7 @@ const createTodoItem = async (listId, title, position, reminderAt, tags) => {
      VALUES (?, ?, ?, ?, ?)`,
     [listId, title, position, reminderAt, tags],
   );
+  await redisClient.del(`todo:items:${listId}`);
 
   return {
     id: result.insertId,
@@ -32,6 +38,7 @@ const createTodoItem = async (listId, title, position, reminderAt, tags) => {
     reminder_at: reminderAt,
     tags: JSON.parse(tags), 
   };
+
 };
 
 const verifyItemOwnership = async (itemId, userId) => {
@@ -86,6 +93,7 @@ const updateTodoItem = async (itemId, updates) => {
     `UPDATE todoitems SET ${fields.join(", ")} WHERE id = ?`,
     values,
   );
+  await redisClient.del(`todo:items:${listId}`);
 
   return result;
 };

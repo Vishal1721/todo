@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const redisClient = require("../config/redis")
 
 const createList = async (userId, name, isPublic = 0) => {
   const [result] = await db.query(
@@ -15,11 +16,12 @@ const createList = async (userId, name, isPublic = 0) => {
 };
 
 const getUserTodoLists = async (userId) => {
+  const cacheKey = `todo:lists:${listId}`;
   const [rows] = await db.query(
     "SELECT id, name, share_token, is_public, created_at FROM todolists WHERE user_id = ?",
     [userId],
   );
-
+  await redisClient.setEx(cacheKey, 30, JSON.stringify(rows));
   return rows;
 };
 
