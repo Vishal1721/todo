@@ -105,7 +105,34 @@ const deleteTodoItem = async (itemId) => {
 
   return result;
 };
+const markReminderSent = async (itemId, userId) => {
+  const [result] = await db.query(
+    `
+    UPDATE todoitems ti
+    JOIN todolists tl ON ti.list_id = tl.id
+    SET ti.reminder_sent = 1
+    WHERE ti.id = ? AND tl.user_id = ?
+    `,
+    [itemId, userId],
+  );
 
+  return result;
+};
+const getTodoStats = async (listId) => {
+  const [rows] = await db.query(
+    `
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) AS completed,
+      SUM(CASE WHEN is_completed = 0 THEN 1 ELSE 0 END) AS pending
+    FROM todoitems
+    WHERE list_id = ?
+    `,
+    [listId],
+  );
+
+  return rows[0];
+};
 module.exports = {
   verifyListOwnership,
   createTodoItem,
@@ -113,4 +140,6 @@ module.exports = {
   verifyItemOwnership,
   GetTodoItems,
   deleteTodoItem,
+  markReminderSent,
+  getTodoStats,
 };
